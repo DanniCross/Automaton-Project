@@ -171,6 +171,12 @@ class GUI:
                                                      Edge.Origin.y), (Edge.Destiny.x, Edge.Destiny.y), 3)
 
         for Node in self.Graph.Nodes:
+            width1 = 0
+            width2 = 0
+            size = 0
+            State1 = None
+            State2 = None
+            Pos = None
             if (Node.x and Node.y) != 0:
                 if Node.Accept:
                     color = (255, 0, 0)
@@ -178,15 +184,21 @@ class GUI:
                     color = (0, 0, 255)
                 else:
                     color = (0, 0, 0)
+                State1 = font.render(f"{Node.State[0]}", True, color)
+                State2 = font.render(f"{Node.State[1]}", True, color)
+                Pos = font.render(f"{Node.Pos}", True, color)
+                width1 = State1.get_width()
+                width2 = State2.get_width()
+                if width1 >= width2:
+                    size = width1 + Pos.get_width()
+                else:
+                    size = width2 + Pos.get_width()
 
                 pygame.draw.rect(Screen, (255, 255, 255),
-                                 (Node.x - 30, Node.y - 15, 120, 20))
-                Screen.blit(
-                    (font.render(f"{Node.State[0]}", True, color)), (Node.x - 20, Node.y - 15))
-                Screen.blit(
-                    (font.render(f"{Node.State[1]}", True, color)), (Node.x - 20, Node.y - 5))
-                Screen.blit(
-                    (font.render(f"{Node.Pos}", True, color)), (Node.x - 30, Node.y - 10))
+                                 (Node.x - 30, Node.y - 15, size, 20))
+                Screen.blit((State1), (Node.x - 20, Node.y - 15))
+                Screen.blit((State2), (Node.x - 20, Node.y - 5))
+                Screen.blit((Pos), (Node.x - 30, Node.y - 10))
 
     def CantDrive(self, CantDrive):
         cant = ''
