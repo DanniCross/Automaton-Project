@@ -51,7 +51,7 @@ class GUI:
                         ScreenTK = Tk()
                         size = self.screen_size()
                         ScreenTK.geometry(
-                            f"620x330+{int(size[0]/2) - 305}+{int(size[1]/2) - 170}")
+                            f"620x340+{int(size[0]/2) - 305}+{int(size[1]/2) - 170}")
                         ScreenTK.title("Configure the automaton")
                         ScreenTK.resizable(0, 0)
                         Entity = StringVar()
@@ -114,8 +114,18 @@ class GUI:
                                     width=20).place(x=110, y=250)
                         Button(ScreenTK, text="Add Constraint",
                                command=lambda: self.DriveAlone(DAlone), cursor="hand1").place(x=250, y=245)
+                        C6 = Label(ScreenTK, text="6. No Drive: ____________          with:  ____________").place(
+                            x=10, y=280)
+                        ND = StringVar()
+                        W = StringVar()
+                        C6T = Entry(ScreenTK, textvariable=ND,
+                                    width=20).place(x=90, y=280)
+                        C6T1 = Entry(ScreenTK, textvariable=W,
+                                     width=20).place(x=260, y=280)
+                        Button(ScreenTK, text="Add Constraint", command=lambda: self.NoDriveW(
+                            ND, W), cursor="hand1").place(x=400, y=275)
                         Button(ScreenTK, text="OK",
-                               command=lambda: self.StartG(ScreenTK), cursor="hand1").place(x=280, y=290)
+                               command=lambda: self.StartG(ScreenTK), cursor="hand1").place(x=280, y=305)
                         ScreenTK.mainloop()
                 if event.type is pygame.QUIT:
                     pygame.quit()
@@ -203,7 +213,7 @@ class GUI:
     def CantDrive(self, CantDrive):
         cant = ''
         for i in range(len(CantDrive.get())):
-            if CantDrive.get()[i] != ',':
+            if CantDrive.get()[i] != ',' and CantDrive.get()[i] != '':
                 cant = cant + CantDrive.get()[i]
             if CantDrive.get()[i] == ',' or i == len(CantDrive.get()) - 1:
                 self.Graph.NoDrive.append(cant)
@@ -216,7 +226,7 @@ class GUI:
         gu = ''
         guards = []
         for ent in NoAlone.get():
-            if ent != ',':
+            if ent != ',' and ent != '':
                 entity = entity + ent
             if ent == ',' or ent == NoAlone.get()[len(NoAlone.get()) - 1]:
                 NoA.append(entity)
@@ -225,10 +235,11 @@ class GUI:
         self.Graph.NoAloneTog.append(NoA)
 
         for guard in Guard.get():
-            if guard != ',':
+            if guard != ',' and guard != '':
                 gu = gu + guard
             if guard == ',' or guard == Guard.get()[len(Guard.get()) - 1]:
-                guards.append(gu)
+                if gu != '':
+                    guards.append(gu)
                 gu = ''
 
         self.Graph.Guard.append(guards)
@@ -244,7 +255,7 @@ class GUI:
     def NotAlone(self, NoAlone):
         entity = ''
         for ent in NoAlone.get():
-            if ent != ',':
+            if ent != ',' and ent != '':
                 entity = entity + ent
             if ent == ',' or ent == NoAlone.get()[len(NoAlone.get()) - 1]:
                 self.Graph.NotAlone.append(entity)
@@ -254,9 +265,15 @@ class GUI:
     def DriveAlone(self, Drive):
         entity = ''
         for ent in Drive.get():
-            if ent != ',':
+            if ent != ',' and ent != '':
                 entity = entity + ent
             if ent == ',' or ent == Drive.get()[len(Drive.get()) - 1]:
                 self.Graph.DriveAlone.append(entity)
                 entity = ''
         Drive.set('')
+
+    def NoDriveW(self, ND, W):
+        NDrive = [ND.get(), W.get()]
+        self.Graph.NoDriveWith.append(NDrive)
+        ND.set('')
+        W.set('')

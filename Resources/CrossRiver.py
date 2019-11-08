@@ -12,6 +12,7 @@ class CrossRiver:
         self.Root = None
         self.now = False
         self.NoDrive = []
+        self.NoDriveWith = []
         self.NoAloneTog = []
         self.NoMore = []
         self.Guard = []
@@ -38,7 +39,7 @@ class CrossRiver:
         self.Root = self.GenerateTransitions(self.Root)
         self.CreateEdge()
         self.Root = self.SetPositions(self.Root)
-        self.show()
+        # self.show()
         return self
 
     def GenerateTransitions(self, Father):
@@ -195,6 +196,7 @@ class CrossRiver:
                                 if Father.State[1][i] != '' and Father.State[1][j] != '':
                                     exist = True
                                     dig = True
+                                    NoDriveW = False
                                     DigT = ''
                                     DigTT = ''
                                     NDig = ''
@@ -226,9 +228,17 @@ class CrossRiver:
                                         else:
                                             NDigT = NDigT + temp.State[1][j][d]
                                             dig = False
+                                    
+                                    for list in self.NoDriveWith:
+                                        if ((NDig == list[1] or NDig == list[0]) and
+                                                (NDigT == list[0] or NDigT == list[1])):
+                                            NoDriveW = True
+                                            break
+                                        else:
+                                            NoDriveW = False
 
                                     if (NDig in self.DriveAlone or NDigT in self.DriveAlone or
-                                            (NDig in self.NoDrive and NDigT in self.NoDrive)):
+                                            (NDig in self.NoDrive and NDigT in self.NoDrive) or NoDriveW):
                                         continue
 
                                     if DigT != '':
@@ -429,6 +439,7 @@ class CrossRiver:
                                 if Father.State[0][i] != '' and Father.State[0][j] != '':
                                     exist = True
                                     dig = True
+                                    NoDriveW = False
                                     NDig = ''
                                     NDigT = ''
                                     DigT = ''
@@ -460,9 +471,17 @@ class CrossRiver:
                                         else:
                                             NDigT = NDigT + temp.State[0][j][d]
                                             dig = False
+                                    
+                                    for list in self.NoDriveWith:
+                                        if ((NDig == list[1] or NDig == list[0]) and
+                                            (NDigT == list[0] or NDigT == list[1])):
+                                            NoDriveW = True
+                                            break
+                                        else:
+                                            NoDriveW = False
 
                                     if (NDig in self.DriveAlone or NDigT in self.DriveAlone or
-                                            (NDig in self.NoDrive and NDigT in self.NoDrive)):
+                                            (NDig in self.NoDrive and NDigT in self.NoDrive) or NoDriveW):
                                         continue
 
                                     if DigT != '':
@@ -523,6 +542,7 @@ class CrossRiver:
         self.constraintZ = []
         self.constraintO = []
         More = False
+        MoreT = False
         Alone = True
         GuardZ = True
         GuardO = True
@@ -532,8 +552,12 @@ class CrossRiver:
         ConsO = []
         Create = True
         dig = True
+        dig2 = True
         DigT = ''
         NDig = ''
+        Etemp = ''
+        E1 = 0
+        E2 = 0
         al = 0
         n1 = 0
         n2 = 0
@@ -578,7 +602,7 @@ class CrossRiver:
                     break
             if VerConsZ:
                 ConsZ.append(i)
-            
+
         if len(ConsZ) > 0:
             VerConsZ = True
 
@@ -593,10 +617,32 @@ class CrossRiver:
                     break
             if VerConsO:
                 ConsO.append(j)
-            
+
         if len(ConsO) > 0:
             VerConsO = True
 
+        for s in range(len(self.NoMore)):
+            for t in range(len(temp.State)):
+                E1 = 0
+                E2 = 0
+                for u in range(len(temp.State[t])):
+                    Etemp = ''
+                    for char in temp.State[t][u]:
+                        if char.isdigit() and dig2:
+                            continue
+                        else:
+                            dig2 = False
+                            Etemp = Etemp + char
+                            if Etemp == self.NoMore[s][0]:
+                                E1 += 1
+                            elif Etemp == self.NoMore[s][1]:
+                                E2 += 1
+                if E1 != 0 and E2 != 0 and E1 > E2:
+                    MoreT = True
+                    break
+            if MoreT:
+                break
+                    
         for h in range(len(self.NoMore)):
             for j in range(len(temp.State)):
                 n1 = 0
@@ -659,7 +705,7 @@ class CrossRiver:
                 if not GuardZ:
                     break
 
-        if ((VerConsZ and not GuardZ) or (VerConsO and not GuardO)) or More or Alone:
+        if ((VerConsZ and not GuardZ) or (VerConsO and not GuardO)) or More or Alone or MoreT:
             Create = False
         else:
             Create = True
@@ -711,7 +757,7 @@ class CrossRiver:
             if pas:
                 Father.x = x
                 Father.y = y
-        
+
         if Father.Accept and len(self.Nodes) >= 30:
             self.now = True
 
