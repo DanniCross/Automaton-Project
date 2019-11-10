@@ -349,7 +349,7 @@ class GUI:
                     ant = pos
 
             Button(ScreenTK, text="OK", command=lambda: ScreenTK.destroy(),
-                   cursor="hand1").place(x=230, y=size1[1] - 40)
+                   cursor="hand1").place(x=230, y=size1[1] - 30)
 
     def AddWeight(self, W, Entries):
         P1 = 0
