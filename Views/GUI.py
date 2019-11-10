@@ -341,7 +341,9 @@ class GUI:
                     Ent2L = Label(ScreenTK, text=f"{self.Graph.StateInit[1][k]}'s weight:").place(
                         x=260, y=pos)
                     Ent2E = Entry(ScreenTK, textvariable=W,
-                                  width=5).place(x=340, y=pos)
+                                  width=5)
+                    Ent2E.place(x=340, y=pos)
+                    Entries[1].append(Ent2E)
                     Button(ScreenTK, text="Insert weigth",
                            command=lambda: self.AddWeight(W, 1, k), cursor="hand1").place(x=380, y=(pos-5))
                     ant = pos
@@ -357,8 +359,6 @@ class GUI:
             for j in range(len(Entries[i])):
                 if int(Entries[i][j].get()) != 0:
                     W.set(Entries[i][j].get())
-                    Entries[i][j].delete(0, len(Entries[i][j].get()))
-                    Entries[i][j].insert(0, 0)
                     P1 = i
                     P2 = j
                     ready = True
@@ -367,3 +367,5 @@ class GUI:
                 break
 
         self.Graph.EWeight[P1][P2] = W.get()
+        W.set(0)
+        print(self.Graph.EWeight)
