@@ -1,6 +1,7 @@
 from Resources.Node import Node
 from Resources.Edge import Edge
 from random import randint
+from math import inf
 
 
 class CrossRiver:
@@ -10,7 +11,9 @@ class CrossRiver:
         self.Nodes = []
         self.Edges = []
         self.Root = None
-        self.now = False
+        self.MaxWeight = 0
+        self.MinWaysL = []
+        self.Min = []
         self.NoDrive = []
         self.NoDriveWith = []
         self.NoAloneTog = []
@@ -22,9 +25,11 @@ class CrossRiver:
         self.constraintO = []
         self.StateInit = [[], []]
         self.StateInitN = [[], []]
+        self.EWeight = [[], []]
         self.StateAccept = [[], []]
 
     def Start(self):
+        min = inf
         for entity in self.StateInit[0]:
             self.StateInit[1].append('')
             if len(self.StateInitN[0]) > 0:
@@ -32,13 +37,22 @@ class CrossRiver:
         self.StateAccept[0] = self.StateInit[1]
         self.StateAccept[1] = self.StateInit[0]
         if len(self.StateInitN[0]) > 0:
-            self.Root = Node(self.StateInit, self.StateInitN, 'L')
+            self.Root = Node(self.StateInit, self.StateInitN, 'L', 1)
         else:
-            self.Root = Node(self.StateInit, [[], []], 'L')
+            self.Root = Node(self.StateInit, [[], []], 'L', 1)
         self.Nodes.append(self.Root)
         self.Root = self.GenerateTransitions(self.Root)
         self.CreateEdge()
-        self.Root = self.SetPositions(self.Root)
+        self.MinWays(self.Root, [])
+        if len(self.Nodes) < 30:
+            self.Root = self.SetPositions(self.Root)
+        else:
+            for list in self.MinWaysL:
+                self.setPosMin(list)
+        for Mlist in self.MinWaysL:
+            if len(Mlist) < min:
+                min = len(Mlist)
+                self.Min = Mlist
         # self.show()
         return self
 
@@ -54,19 +68,28 @@ class CrossRiver:
                             dig = True
                             DigT = ''
                             NDig = ''
+                            pw = True
                             for c in range(len(Father.State[1][i])):
                                 if Father.State[1][i][c].isdigit() and dig:
                                     DigT = DigT + Father.State[1][i][c]
                                 else:
                                     NDig = NDig + Father.State[1][i][c]
                                     dig = False
+
+                            if self.MaxWeight > 0:
+                                if self.EWeight[i] < self.MaxWeight:
+                                    pw = True
+                                else:
+                                    pw = False
+
                             if (Father.State[1][i] != '' and NDig not in self.NoDrive
-                                    and NDig not in self.NotAlone):
+                                    and NDig not in self.NotAlone and pw):
                                 exist = True
                                 dig = True
                                 DigT = ''
                                 NDig = ''
-                                temp = Node([[], []], [[], []], 'L')
+                                temp = Node([[], []], [[], []],
+                                            'L', Father.Level + 1)
                                 temp.Father = Father
 
                                 for a in range(len(Father.StateN)):
@@ -129,6 +152,7 @@ class CrossRiver:
                             dig = True
                             DigT = ''
                             NDig = ''
+                            pw = True
                             for c in range(len(Father.State[1][i])):
                                 if Father.State[1][i][c].isdigit() and dig:
                                     DigT = DigT + Father.State[1][i][c]
@@ -136,13 +160,20 @@ class CrossRiver:
                                     NDig = NDig + Father.State[1][i][c]
                                     dig = False
 
+                            if self.MaxWeight > 0:
+                                if self.EWeight[i]*2 < self.MaxWeight:
+                                    pw = True
+                                else:
+                                    pw = False
+
                             if (Father.StateN[1][i] >= 2 and NDig not in self.DriveAlone
-                                    and NDig not in self.NoDrive):
+                                    and NDig not in self.NoDrive and pw):
                                 dig = True
                                 exist = True
                                 DigT = ''
                                 NDig = ''
-                                temp = Node([[], []], [[], []], 'L')
+                                temp = Node([[], []], [[], []],
+                                            'L', Father.Level + 1)
                                 temp.Father = Father
 
                                 for a in range(len(Father.StateN)):
@@ -201,7 +232,9 @@ class CrossRiver:
                                     DigTT = ''
                                     NDig = ''
                                     NDigT = ''
-                                    temp = Node([[], []], [[], []], 'L')
+                                    pw = True
+                                    temp = Node([[], []], [[], []],
+                                                'L', Father.Level + 1)
                                     temp.Father = Father
 
                                     for a in range(len(Father.StateN)):
@@ -228,7 +261,7 @@ class CrossRiver:
                                         else:
                                             NDigT = NDigT + temp.State[1][j][d]
                                             dig = False
-                                    
+
                                     for list in self.NoDriveWith:
                                         if ((NDig == list[1] or NDig == list[0]) and
                                                 (NDigT == list[0] or NDigT == list[1])):
@@ -237,8 +270,14 @@ class CrossRiver:
                                         else:
                                             NoDriveW = False
 
+                                    if self.MaxWeight > 0:
+                                       if (self.EWeight[i] + self.EWeight[j]) < self.MaxWeight:
+                                           pw = True
+                                       else:
+                                           pw = False
+
                                     if (NDig in self.DriveAlone or NDigT in self.DriveAlone or
-                                            (NDig in self.NoDrive and NDigT in self.NoDrive) or NoDriveW):
+                                            (NDig in self.NoDrive and NDigT in self.NoDrive) or NoDriveW or not pw):
                                         continue
 
                                     if DigT != '':
@@ -297,19 +336,27 @@ class CrossRiver:
                             dig = True
                             DigT = ''
                             NDig = ''
+                            pw = True
                             for c in range(len(Father.State[0][i])):
                                 if Father.State[0][i][c].isdigit() and dig:
                                     DigT = DigT + Father.State[0][i][c]
                                 else:
                                     NDig = NDig + Father.State[0][i][c]
                                     dig = False
+                            
+                            if self.MaxWeight > 0:
+                                if self.EWeight[i] < self.MaxWeight:
+                                    pw = True
+                                else:
+                                    pw = False
+
                             if (Father.State[0][i] != '' and NDig not in self.NoDrive
                                     and NDig not in self.NotAlone):
                                 exist = True
                                 dig = True
                                 DigT = ''
                                 NDig = ''
-                                temp = Node([[], []], [[], []], 'R')
+                                temp = Node([[], []], [[], []], 'R', Father.Level + 1)
                                 temp.Father = Father
 
                                 for a in range(len(Father.StateN)):
@@ -372,20 +419,27 @@ class CrossRiver:
                             dig = True
                             DigT = ''
                             NDig = ''
+                            pw = True
                             for c in range(len(Father.State[0][i])):
                                 if Father.State[0][i][c].isdigit() and dig:
                                     DigT = DigT + Father.State[0][i][c]
                                 else:
                                     NDig = NDig + Father.State[0][i][c]
                                     dig = False
+                            
+                            if self.MaxWeight > 0:
+                                if self.EWeight[i]*2 < self.MaxWeight:
+                                    pw = True
+                                else:
+                                    pw = False
 
                             if (Father.StateN[0][i] >= 2 and NDig not in self.DriveAlone and
-                                    NDig not in self.NoDrive):
+                                    NDig not in self.NoDrive and pw):
                                 dig = True
                                 exist = True
                                 DigT = ''
                                 NDig = ''
-                                temp = Node([[], []], [[], []], 'R')
+                                temp = Node([[], []], [[], []], 'R', Father.Level + 1)
                                 temp.Father = Father
 
                                 for a in range(len(Father.StateN)):
@@ -444,7 +498,8 @@ class CrossRiver:
                                     NDigT = ''
                                     DigT = ''
                                     DigTT = ''
-                                    temp = Node([[], []], [[], []], 'R')
+                                    pw = True
+                                    temp = Node([[], []], [[], []], 'R', Father.Level + 1)
                                     temp.Father = Father
 
                                     for a in range(len(Father.StateN)):
@@ -471,17 +526,23 @@ class CrossRiver:
                                         else:
                                             NDigT = NDigT + temp.State[0][j][d]
                                             dig = False
-                                    
+
                                     for list in self.NoDriveWith:
                                         if ((NDig == list[1] or NDig == list[0]) and
-                                            (NDigT == list[0] or NDigT == list[1])):
+                                                (NDigT == list[0] or NDigT == list[1])):
                                             NoDriveW = True
                                             break
                                         else:
                                             NoDriveW = False
+                                    
+                                    if self.MaxWeight > 0:
+                                        if (self.EWeight[i] + self.EWeight[j]) < self.MaxWeight:
+                                            pw = True
+                                        else:
+                                            pw = False
 
                                     if (NDig in self.DriveAlone or NDigT in self.DriveAlone or
-                                            (NDig in self.NoDrive and NDigT in self.NoDrive) or NoDriveW):
+                                            (NDig in self.NoDrive and NDigT in self.NoDrive) or NoDriveW or not pw):
                                         continue
 
                                     if DigT != '':
@@ -541,7 +602,6 @@ class CrossRiver:
     def Constraints(self, temp):
         self.constraintZ = []
         self.constraintO = []
-        More = False
         MoreT = False
         Alone = True
         GuardZ = True
@@ -556,11 +616,10 @@ class CrossRiver:
         DigT = ''
         NDig = ''
         Etemp = ''
+        Edig = ''
         E1 = 0
         E2 = 0
         al = 0
-        n1 = 0
-        n2 = 0
         i = 0
         j = 0
 
@@ -627,37 +686,26 @@ class CrossRiver:
                 E2 = 0
                 for u in range(len(temp.State[t])):
                     Etemp = ''
+                    Edig = ''
+                    dig2 = True
                     for char in temp.State[t][u]:
                         if char.isdigit() and dig2:
-                            continue
+                            Edig = Edig + str(int(char) - 1)
                         else:
                             dig2 = False
                             Etemp = Etemp + char
                             if Etemp == self.NoMore[s][0]:
                                 E1 += 1
+                                if Edig != '':
+                                    E1 += int(Edig)
                             elif Etemp == self.NoMore[s][1]:
                                 E2 += 1
+                                if Edig != '':
+                                    E2 += int(Edig)
                 if E1 != 0 and E2 != 0 and E1 > E2:
                     MoreT = True
                     break
             if MoreT:
-                break
-                    
-        for h in range(len(self.NoMore)):
-            for j in range(len(temp.State)):
-                n1 = 0
-                n2 = 0
-                for k in range(len(temp.State[j])):
-                    if temp.State[j][k] == f"{temp.StateN[j][k]}{self.NoMore[h][0]}":
-                        n1 = temp.StateN[j][k]
-                    elif temp.State[j][k] == f"{temp.StateN[j][k]}{self.NoMore[h][1]}":
-                        n2 = temp.StateN[j][k]
-                    if n1 != 0 and n2 != 0 and n1 > n2:
-                        More = True
-                        break
-                if More:
-                    break
-            if More:
                 break
 
         for l in range(len(temp.State)):
@@ -705,7 +753,7 @@ class CrossRiver:
                 if not GuardZ:
                     break
 
-        if ((VerConsZ and not GuardZ) or (VerConsO and not GuardO)) or More or Alone or MoreT:
+        if ((VerConsZ and not GuardZ) or (VerConsO and not GuardO)) or Alone or MoreT:
             Create = False
         else:
             Create = True
@@ -758,10 +806,55 @@ class CrossRiver:
                 Father.x = x
                 Father.y = y
 
-        if Father.Accept and len(self.Nodes) >= 30:
-            self.now = True
-
         for i in range(len(Father.Adj)):
-            if not self.now:
-                Father.Adj[i] = self.SetPositions(Father.Adj[i])
+            Father.Adj[i] = self.SetPositions(Father.Adj[i])
         return Father
+
+    def setPosMin(self, Min):
+        for ent in Min:
+            pas = False
+            if ent.x == ent.y == 0:
+                while not pas:
+                    x = randint(30, 1300)
+                    y = randint(20, 700)
+
+                    if ent == self.Root:
+                        pas = True
+                    else:
+                        for node in self.Nodes:
+                            if ((node.x >= x + 15 or node.x <= x - 15)
+                                    and (node.y >= y + 15 or node.y <= y - 15)):
+                                pas = True
+                            else:
+                                pas = False
+                                break
+
+                    if pas:
+                        ent.x = x
+                        ent.y = y
+    
+    def MinWays(self, Father, min):
+        act = []
+
+        if Father.Accept:
+            min.append(Father)
+            self.MinWaysL.append([])
+            for i in range(len(self.MinWaysL)):
+                if len(self.MinWaysL[i]) == 0:
+                    for enti in min:
+                        self.MinWaysL[i].append(enti)
+                    break
+            return
+        
+        min.append(Father)
+        for ent in min:
+            act.append(ent)
+
+        for Adj in Father.Adj:
+            if Adj.Level > Father.Level:
+                self.MinWays(Adj, min)
+                min.clear()
+                for ant in act:
+                    min.append(ant)
+        return
+

@@ -1,10 +1,11 @@
 class Node:
 
-    def __init__(self, State, StateN, Pos):
+    def __init__(self, State, StateN, Pos, Level):
         self.State = State
         self.StateN = StateN
         self.Pos = Pos
         self.Adj = []
+        self.Level = Level
         self.Visited = False
         self.Accept = False
         self.x = 0

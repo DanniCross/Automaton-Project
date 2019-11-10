@@ -1,6 +1,7 @@
 import pygame
 import sys
 import subprocess
+import tkinter
 from tkinter import *
 from Views.Button import Button as B
 from Views.Cursor import Cursor
@@ -124,8 +125,15 @@ class GUI:
                                      width=20).place(x=260, y=280)
                         Button(ScreenTK, text="Add Constraint", command=lambda: self.NoDriveW(
                             ND, W), cursor="hand1").place(x=400, y=275)
+                        C7 = Label(ScreenTK, text="7. Max raft weigth: ").place(
+                            x=10, y=310)
+                        MW = IntVar()
+                        C7T = Entry(ScreenTK, textvariable=MW,
+                                    width=20).place(x=130, y=310)
+                        Button(ScreenTK, text="Add Constraint",
+                               command=lambda: self.MaxWeight(ScreenTK, MW)).place(x=270, y=305)
                         Button(ScreenTK, text="OK",
-                               command=lambda: self.StartG(ScreenTK), cursor="hand1").place(x=280, y=305)
+                               command=lambda: self.StartG(ScreenTK), cursor="hand1").place(x=280, y=335)
                         ScreenTK.mainloop()
                 if event.type is pygame.QUIT:
                     pygame.quit()
@@ -175,10 +183,20 @@ class GUI:
 
     def DrawG(self, Screen, font):
         color = (0, 0, 0)
+        drawL = True
         for Edge in self.Graph.Edges:
+            drawL = True
             if (Edge.Origin.x and Edge.Destiny.x and Edge.Origin.y and Edge.Destiny.y) != 0:
-                pygame.draw.line(Screen, (0, 0, 0), (Edge.Origin.x,
-                                                     Edge.Origin.y), (Edge.Destiny.x, Edge.Destiny.y), 3)
+                for i in range(len(self.Graph.Min) - 1):
+                    if ((self.Graph.Min[i] == Edge.Origin and self.Graph.Min[i + 1] == Edge.Destiny)
+                            or (self.Graph.Min[i + 1] == Edge.Origin and self.Graph.Min[i] == Edge.Destiny)):
+                        drawL = False
+                        pygame.draw.line(Screen, (0, 255, 0), (Edge.Origin.x,
+                                                               Edge.Origin.y), (Edge.Destiny.x, Edge.Destiny.y), 3)
+                        break
+                if drawL:
+                    pygame.draw.line(Screen, (0, 0, 0), (Edge.Origin.x,
+                                                         Edge.Origin.y), (Edge.Destiny.x, Edge.Destiny.y), 3)
 
         for Node in self.Graph.Nodes:
             width1 = 0
@@ -277,3 +295,75 @@ class GUI:
         self.Graph.NoDriveWith.append(NDrive)
         ND.set('')
         W.set('')
+
+    def MaxWeight(self, root, MW):
+        if int(MW.get()) > 0:
+            self.Graph.MaxWeight = MW.get()
+            Entries = [[], []]
+            size = self.screen_size()
+            ScreenTK = tkinter.Toplevel(root)
+            size1 = [500, 0]
+            if len(self.Graph.StateInit[0]) > len(self.Graph.StateInit[1]):
+                size1[1] = len(self.Graph.StateInit[0]) * 60
+            else:
+                size1[1] = len(self.Graph.StateInit[1]) * 60
+
+            ScreenTK.geometry(
+                f"{size1[0]}x{size1[1]}+{int(size[0]/2) - 250}+{int(size[1]/2) - int(size1[1]/2)}")
+            ScreenTK.title("Entity's weight")
+            ScreenTK.resizable(0, 0)
+            Ins = Label(ScreenTK, text="Write the weight correspondent to each entity:").place(
+                x=10, y=10)
+            ant = 10
+            for i in range(len(self.Graph.StateInit)):
+                for ent in self.Graph.StateInit[i]:
+                    self.Graph.EWeight[i].append(0)
+
+            for j in range(len(self.Graph.StateInit[0])):
+                if self.Graph.StateInit[0][j] != '':
+                    W = IntVar()
+                    pos = 30 + ant
+                    Ent1L = Label(ScreenTK, text=f"{self.Graph.StateInit[0][j]}'s weight:").place(
+                        x=10, y=pos)
+                    Ent1E = Entry(ScreenTK, textvariable=W,
+                                  width=5)
+                    Ent1E.place(x=90, y=pos)
+                    Entries[0].append(Ent1E)
+                    Button(ScreenTK, text="Insert weigth",
+                           command=lambda: self.AddWeight(W, Entries), cursor="hand1").place(x=130, y=(pos - 5))
+                    ant = pos
+
+            ant = 10
+            for k in range(len(self.Graph.StateInit[1])):
+                if self.Graph.StateInit[1][k] != '':
+                    W = IntVar()
+                    pos = 30 + ant
+                    Ent2L = Label(ScreenTK, text=f"{self.Graph.StateInit[1][k]}'s weight:").place(
+                        x=260, y=pos)
+                    Ent2E = Entry(ScreenTK, textvariable=W,
+                                  width=5).place(x=340, y=pos)
+                    Button(ScreenTK, text="Insert weigth",
+                           command=lambda: self.AddWeight(W, 1, k), cursor="hand1").place(x=380, y=(pos-5))
+                    ant = pos
+
+            Button(ScreenTK, text="OK", command=lambda: ScreenTK.destroy(),
+                   cursor="hand1").place(x=230, y=size1[1] - 40)
+
+    def AddWeight(self, W, Entries):
+        P1 = 0
+        P2 = 0
+        ready = False
+        for i in range(len(Entries)):
+            for j in range(len(Entries[i])):
+                if int(Entries[i][j].get()) != 0:
+                    W.set(Entries[i][j].get())
+                    Entries[i][j].delete(0, len(Entries[i][j].get()))
+                    Entries[i][j].insert(0, 0)
+                    P1 = i
+                    P2 = j
+                    ready = True
+                    break
+            if ready:
+                break
+
+        self.Graph.EWeight[P1][P2] = W.get()
