@@ -3,6 +3,9 @@ class Node:
     def __init__(self, State, StateN, Pos, Level):
         self.State = State
         self.StateN = StateN
+        self.Weight = [[], []]
+        self.Time = [[], []]
+        self.MT = None
         self.Pos = Pos
         self.Adj = []
         self.Level = Level
@@ -21,4 +24,9 @@ class Node:
                 else:
                     exist = False
                     break
+
+        if self.MT != None:
+            if self.MT != node.MT:
+                return False
+
         return (exist and self.Pos is node.Pos)

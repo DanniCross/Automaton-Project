@@ -12,6 +12,8 @@ class CrossRiver:
         self.Edges = []
         self.Root = None
         self.MaxWeight = 0
+        self.MaxTime = 0
+        self.MT = False
         self.MinWaysL = []
         self.Min = []
         self.NoDrive = []
@@ -26,6 +28,7 @@ class CrossRiver:
         self.StateInit = [[], []]
         self.StateInitN = [[], []]
         self.EWeight = [[], []]
+        self.TimeC = [[], []]
         self.StateAccept = [[], []]
 
     def Start(self):
@@ -34,12 +37,22 @@ class CrossRiver:
             self.StateInit[1].append('')
             if len(self.StateInitN[0]) > 0:
                 self.StateInitN[1].append(0)
+            if len(self.EWeight[0]) > 0:
+                self.EWeight[1].append(0)
+            if len(self.TimeC[0]) > 0:
+                self.TimeC[1].append(0)
         self.StateAccept[0] = self.StateInit[1]
         self.StateAccept[1] = self.StateInit[0]
         if len(self.StateInitN[0]) > 0:
             self.Root = Node(self.StateInit, self.StateInitN, 'L', 1)
         else:
             self.Root = Node(self.StateInit, [[], []], 'L', 1)
+        if len(self.EWeight[0]) > 0:
+            self.Root.Weight = self.EWeight
+        if len(self.TimeC[0]) > 0:
+            self.Root.Time = self.TimeC
+            self.Root.MT = self.MaxTime
+            self.MT = True
         self.Nodes.append(self.Root)
         self.Root = self.GenerateTransitions(self.Root)
         self.CreateEdge()
@@ -69,6 +82,7 @@ class CrossRiver:
                             DigT = ''
                             NDig = ''
                             pw = True
+                            pt = True
                             for c in range(len(Father.State[1][i])):
                                 if Father.State[1][i][c].isdigit() and dig:
                                     DigT = DigT + Father.State[1][i][c]
@@ -77,13 +91,21 @@ class CrossRiver:
                                     dig = False
 
                             if self.MaxWeight > 0:
-                                if self.EWeight[i] < self.MaxWeight:
+                                if Father.Weight[1][i] <= self.MaxWeight:
                                     pw = True
                                 else:
                                     pw = False
+                            
+                            if Father.MT != None and Father.MT > 0:
+                                if Father.MT - Father.Time[1][i] > 0:
+                                    pt = True
+                                else:
+                                    pt = False
+                            elif self.MT:
+                                pt = False
 
                             if (Father.State[1][i] != '' and NDig not in self.NoDrive
-                                    and NDig not in self.NotAlone and pw):
+                                    and NDig not in self.NotAlone and pw and pt):
                                 exist = True
                                 dig = True
                                 DigT = ''
@@ -101,6 +123,14 @@ class CrossRiver:
                                     for k in range(len(Father.State[j])):
                                         temp.State[j].append(
                                             Father.State[j][k])
+                                
+                                for l in range(len(Father.Weight)):
+                                    for m in range(len(Father.Weight[l])):
+                                        temp.Weight[l].append(Father.Weight[l][m])
+                                
+                                for n in range(len(Father.Time)):
+                                    for o in range(len(Father.Time[n])):
+                                        temp.Time[n].append(Father.Time[n][o])
 
                                 for c in range(len(temp.State[1][i])):
                                     if temp.State[1][i][c].isdigit() and dig:
@@ -121,9 +151,20 @@ class CrossRiver:
                                 else:
                                     temp.State[0][i] = Father.State[1][i]
                                     temp.State[1][i] = ''
+                                
+                                if len(temp.Weight[1]) > 0:
+                                    temp.Weight[0][i] = temp.Weight[1][i]
+                                    temp.Weight[1][i] = 0
+                                
+                                if len(temp.Time[1]) > 0:
+                                    temp.Time[0][i] = temp.Time[1][i]
+                                    temp.Time[1][i] = 0
 
                                 if not self.Constraints(temp):
                                     continue
+
+                                if Father.MT != None and Father.MT > 0:
+                                    temp.MT = Father.MT - temp.Time[0][i]
 
                                 for node in self.Nodes:
                                     if temp == node:
@@ -153,6 +194,7 @@ class CrossRiver:
                             DigT = ''
                             NDig = ''
                             pw = True
+                            pt = True
                             for c in range(len(Father.State[1][i])):
                                 if Father.State[1][i][c].isdigit() and dig:
                                     DigT = DigT + Father.State[1][i][c]
@@ -161,13 +203,21 @@ class CrossRiver:
                                     dig = False
 
                             if self.MaxWeight > 0:
-                                if self.EWeight[i]*2 < self.MaxWeight:
+                                if Father.Weight[1][i]*2 <= self.MaxWeight:
                                     pw = True
                                 else:
                                     pw = False
+                            
+                            if Father.MT != None and  Father.MT > 0:
+                                if Father.MT - Father.Time[1][i] > 0:
+                                    pt = True
+                                else:
+                                    pt = False
+                            elif self.MT:
+                                pt = False
 
                             if (Father.StateN[1][i] >= 2 and NDig not in self.DriveAlone
-                                    and NDig not in self.NoDrive and pw):
+                                    and NDig not in self.NoDrive and pw and pt):
                                 dig = True
                                 exist = True
                                 DigT = ''
@@ -185,6 +235,15 @@ class CrossRiver:
                                     for l in range(len(Father.State[k])):
                                         temp.State[k].append(
                                             Father.State[k][l])
+                                
+                                for l in range(len(Father.Weight)):
+                                    for m in range(len(Father.Weight[l])):
+                                        temp.Weight[l].append(
+                                            Father.Weight[l][m])
+                                
+                                for n in range(len(Father.Time)):
+                                    for o in range(len(Father.Time[n])):
+                                        temp.Time[n].append(Father.Time[n][o])
 
                                 for c in range(len(temp.State[1][i])):
                                     if temp.State[1][i][c].isdigit() and dig:
@@ -202,8 +261,18 @@ class CrossRiver:
                                 else:
                                     temp.StateN[1][i] = 0
                                     temp.State[1][i] = ''
+                                
+                                if len(temp.Weight[1]) > 0:
+                                    temp.Weight[0][i] = temp.Weight[1][i] * 2
+                                    temp.Weight[1][i] = 0
+                                
+                                if len(temp.Time[1]) > 0:
+                                    temp.Time[0][i] = temp.Weight[1][i]
+                                    temp.Time[1][i] = 0
 
                                 if self.Constraints(temp):
+                                    if Father.MT != None and Father.MT > 0:
+                                        temp.MT = Father.MT - temp.Time[0][i]
                                     for node in self.Nodes:
                                         if temp == node:
                                             exist = False
@@ -233,6 +302,8 @@ class CrossRiver:
                                     NDig = ''
                                     NDigT = ''
                                     pw = True
+                                    pt = True
+                                    may = 0
                                     temp = Node([[], []], [[], []],
                                                 'L', Father.Level + 1)
                                     temp.Father = Father
@@ -246,6 +317,15 @@ class CrossRiver:
                                         for l in range(len(Father.State[k])):
                                             temp.State[k].append(
                                                 Father.State[k][l])
+                                    
+                                    for l in range(len(Father.Weight)):
+                                        for m in range(len(Father.Weight[l])):
+                                            temp.Weight[l].append(
+                                                Father.Weight[l][m])
+                                    
+                                    for n in range(len(Father.Time)):
+                                        for o in range(len(Father.Time[n])):
+                                            temp.Time[n].append(Father.Time[n][o])
 
                                     for c in range(len(temp.State[1][i])):
                                         if temp.State[1][i][c].isdigit() and dig:
@@ -271,13 +351,26 @@ class CrossRiver:
                                             NoDriveW = False
 
                                     if self.MaxWeight > 0:
-                                       if (self.EWeight[i] + self.EWeight[j]) < self.MaxWeight:
+                                       if (Father.Weight[1][i] + Father.Weight[1][j]) <= self.MaxWeight:
                                            pw = True
                                        else:
                                            pw = False
+                                    
+                                    if Father.MT != None and Father.MT > 0:
+                                        if Father.Time[1][i] >= Father.Time[1][j]:
+                                            may = Father.Time[1][i]
+                                        else:
+                                            may = Father.Time[1][j]
+                                        if Father.MT - may > 0:
+                                            pt = True
+                                        else:
+                                            pt = False
+                                    elif self.MT:
+                                        pt = False
 
                                     if (NDig in self.DriveAlone or NDigT in self.DriveAlone or
-                                            (NDig in self.NoDrive and NDigT in self.NoDrive) or NoDriveW or not pw):
+                                            (NDig in self.NoDrive and NDigT in self.NoDrive) or NoDriveW
+                                                or not pw or not pt):
                                         continue
 
                                     if DigT != '':
@@ -305,9 +398,24 @@ class CrossRiver:
                                     else:
                                         temp.State[0][j] = Father.State[1][j]
                                         temp.State[1][j] = ''
+                                    
+                                    if len(temp.Weight[1]) > 0:
+                                        temp.Weight[0][i] = temp.Weight[1][i]
+                                        temp.Weight[0][j] = temp.Weight[1][j]
+                                        temp.Weight[1][i] = 0
+                                        temp.Weight[1][j] = 0
+                                    
+                                    if len(temp.Time[1]) > 0:
+                                        temp.Time[0][i] = temp.Time[1][i]
+                                        temp.Time[0][j] = temp.Time[1][j]
+                                        temp.Time[1][i] = 0
+                                        temp.Time[1][j] = 0
 
                                     if not self.Constraints(temp):
                                         continue
+
+                                    if Father.MT != None and Father.MT > 0: 
+                                        temp.MT = Father.MT - may
 
                                     for node in self.Nodes:
                                         if temp == node:
@@ -337,6 +445,8 @@ class CrossRiver:
                             DigT = ''
                             NDig = ''
                             pw = True
+                            pt = True
+
                             for c in range(len(Father.State[0][i])):
                                 if Father.State[0][i][c].isdigit() and dig:
                                     DigT = DigT + Father.State[0][i][c]
@@ -345,13 +455,21 @@ class CrossRiver:
                                     dig = False
                             
                             if self.MaxWeight > 0:
-                                if self.EWeight[i] < self.MaxWeight:
+                                if Father.Weight[0][i] <= self.MaxWeight:
                                     pw = True
                                 else:
                                     pw = False
+                            
+                            if Father.MT != None and Father.MT > 0:
+                                if Father.MT - Father.Time[0][i] > 0:
+                                    pt = True
+                                else:
+                                    pt = False
+                            elif self.MT:
+                                pt = False
 
                             if (Father.State[0][i] != '' and NDig not in self.NoDrive
-                                    and NDig not in self.NotAlone):
+                                    and NDig not in self.NotAlone and pw and pt):
                                 exist = True
                                 dig = True
                                 DigT = ''
@@ -368,6 +486,15 @@ class CrossRiver:
                                     for k in range(len(Father.State[j])):
                                         temp.State[j].append(
                                             Father.State[j][k])
+                                
+                                for l in range(len(Father.Weight)):
+                                    for m in range(len(Father.Weight[l])):
+                                        temp.Weight[l].append(
+                                            Father.Weight[l][m])
+                                
+                                for n in range(len(Father.Time)):
+                                    for o in range(len(Father.Time[n])):
+                                        temp.Time[n].append(Father.Time[n][o])
 
                                 for c in range(len(temp.State[0][i])):
                                     if temp.State[0][i][c].isdigit() and dig:
@@ -388,9 +515,20 @@ class CrossRiver:
                                 else:
                                     temp.State[1][i] = Father.State[0][i]
                                     temp.State[0][i] = ''
+                                
+                                if len(temp.Weight[0]) > 0:
+                                    temp.Weight[1][i] = temp.Weight[0][i]
+                                    temp.Weight[0][i] = 0
+                                
+                                if len(temp.Time[0]) > 0:
+                                    temp.Time[1][i] = temp.Time[0][i]
+                                    temp.Time[0][i] = 0
 
                                 if not self.Constraints(temp):
                                     continue
+
+                                if Father.MT != None and Father.MT > 0:
+                                    temp.MT = Father.MT - temp.Time[1][i]
 
                                 for node in self.Nodes:
                                     if temp == node:
@@ -420,6 +558,7 @@ class CrossRiver:
                             DigT = ''
                             NDig = ''
                             pw = True
+                            pt = True
                             for c in range(len(Father.State[0][i])):
                                 if Father.State[0][i][c].isdigit() and dig:
                                     DigT = DigT + Father.State[0][i][c]
@@ -428,13 +567,21 @@ class CrossRiver:
                                     dig = False
                             
                             if self.MaxWeight > 0:
-                                if self.EWeight[i]*2 < self.MaxWeight:
+                                if Father.Weight[0][i]*2 <= self.MaxWeight:
                                     pw = True
                                 else:
                                     pw = False
+                            
+                            if Father.MT != None and Father.MT > 0:
+                                if Father.MT - Father.Time[0][i] > 0:
+                                    pt = True
+                                else:
+                                    pt = False
+                            elif self.MT:
+                                pt = False
 
                             if (Father.StateN[0][i] >= 2 and NDig not in self.DriveAlone and
-                                    NDig not in self.NoDrive and pw):
+                                    NDig not in self.NoDrive and pw and pt):
                                 dig = True
                                 exist = True
                                 DigT = ''
@@ -451,6 +598,15 @@ class CrossRiver:
                                     for l in range(len(Father.State[k])):
                                         temp.State[k].append(
                                             Father.State[k][l])
+                                
+                                for l in range(len(Father.Weight)):
+                                    for m in range(len(Father.Weight[l])):
+                                        temp.Weight[l].append(
+                                            Father.Weight[l][m])
+                                
+                                for n in range(len(Father.Time)):
+                                    for o in range(len(Father.Time[n])):
+                                        temp.Time[n].append(Father.Time[n][o])
 
                                 for c in range(len(temp.State[0][i])):
                                     if temp.State[0][i][c].isdigit() and dig:
@@ -468,8 +624,18 @@ class CrossRiver:
                                 else:
                                     temp.StateN[0][i] = 0
                                     temp.State[0][i] = ''
+                                
+                                if len(temp.Weight[0]) > 0:
+                                    temp.Weight[1][i] = temp.Weight[0][i] * 2
+                                    temp.Weight[0][i] = 0
+                                
+                                if len(temp.Time[0]) > 0:
+                                    temp.Time[1][i] = temp.Time[0][i] 
+                                    temp.Time[0][i] = 0
 
                                 if self.Constraints(temp):
+                                    if Father.MT != None and Father.MT > 0:
+                                        temp.MT = Father.MT - temp.Time[1][i]
                                     for node in self.Nodes:
                                         if temp == node:
                                             exist = False
@@ -499,6 +665,8 @@ class CrossRiver:
                                     DigT = ''
                                     DigTT = ''
                                     pw = True
+                                    pt = True
+                                    may = 0
                                     temp = Node([[], []], [[], []], 'R', Father.Level + 1)
                                     temp.Father = Father
 
@@ -511,6 +679,15 @@ class CrossRiver:
                                         for l in range(len(Father.State[k])):
                                             temp.State[k].append(
                                                 Father.State[k][l])
+                                    
+                                    for l in range(len(Father.Weight)):
+                                        for m in range(len(Father.Weight[l])):
+                                            temp.Weight[l].append(
+                                                Father.Weight[l][m])
+                                    
+                                    for n in range(len(Father.Time)):
+                                        for o in range(len(Father.Time[n])):
+                                            temp.Time[n].append(Father.Time[n][o])
 
                                     for c in range(len(temp.State[0][i])):
                                         if temp.State[0][i][c].isdigit() and dig:
@@ -536,13 +713,26 @@ class CrossRiver:
                                             NoDriveW = False
                                     
                                     if self.MaxWeight > 0:
-                                        if (self.EWeight[i] + self.EWeight[j]) < self.MaxWeight:
+                                        if (Father.Weight[0][i] + Father.Weight[0][j]) <= self.MaxWeight:
                                             pw = True
                                         else:
                                             pw = False
 
+                                    if Father.MT != None and Father.MT > 0:
+                                        if Father.Time[0][i] >= Father.Time[0][j]:
+                                            may = Father.Time[0][i]
+                                        else:
+                                            may = Father.Time[0][j]
+                                        if Father.MT - may > 0:
+                                            pt = True
+                                        else:
+                                            pt = False
+                                    elif self.MT:
+                                        pt = False
+
                                     if (NDig in self.DriveAlone or NDigT in self.DriveAlone or
-                                            (NDig in self.NoDrive and NDigT in self.NoDrive) or NoDriveW or not pw):
+                                            (NDig in self.NoDrive and NDigT in self.NoDrive) or NoDriveW 
+                                                or not pw or not pt):
                                         continue
 
                                     if DigT != '':
@@ -570,9 +760,24 @@ class CrossRiver:
                                     else:
                                         temp.State[1][j] = Father.State[0][j]
                                         temp.State[0][j] = ''
+                                    
+                                    if len(temp.Weight[0]) > 0:
+                                        temp.Weight[1][i] = temp.Weight[0][i] 
+                                        temp.Weight[1][j] = temp.Weight[0][j]
+                                        temp.Weight[0][i] = 0
+                                        temp.Weight[0][j] = 0
+                                    
+                                    if len(temp.Time[0]) > 0:
+                                        temp.Time[1][i] = temp.Time[0][i] 
+                                        temp.Time[1][j] = temp.Time[0][j]
+                                        temp.Time[0][i] = 0
+                                        temp.Time[0][j] = 0
 
                                     if not self.Constraints(temp):
                                         continue
+
+                                    if Father.MT != None and Father.MT > 0:
+                                        temp.MT = Father.MT - may
 
                                     for node in self.Nodes:
                                         if temp == node:
@@ -750,7 +955,7 @@ class CrossRiver:
                             GuardO = False
                     if GuardO:
                         break
-                if not GuardZ:
+                if not GuardO:
                     break
 
         if ((VerConsZ and not GuardZ) or (VerConsO and not GuardO)) or Alone or MoreT:

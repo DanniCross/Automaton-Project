@@ -52,7 +52,7 @@ class GUI:
                         ScreenTK = Tk()
                         size = self.screen_size()
                         ScreenTK.geometry(
-                            f"620x340+{int(size[0]/2) - 305}+{int(size[1]/2) - 170}")
+                            f"620x390+{int(size[0]/2) - 305}+{int(size[1]/2) - 170}")
                         ScreenTK.title("Configure the automaton")
                         ScreenTK.resizable(0, 0)
                         Entity = StringVar()
@@ -132,8 +132,15 @@ class GUI:
                                     width=20).place(x=130, y=310)
                         Button(ScreenTK, text="Add Constraint",
                                command=lambda: self.MaxWeight(ScreenTK, MW)).place(x=270, y=305)
+                        C8 = Label(ScreenTK, text="8. Max time to cross:").place(
+                            x=10, y=340)
+                        MT = IntVar()
+                        C8T = Entry(ScreenTK, textvariable=MT,
+                                    width=20).place(x=140, y=340)
+                        Button(ScreenTK, text="Add Constraint", command=lambda: self.MaxTime(
+                            ScreenTK, MT)).place(x=280, y=335)
                         Button(ScreenTK, text="OK",
-                               command=lambda: self.StartG(ScreenTK), cursor="hand1").place(x=280, y=335)
+                               command=lambda: self.StartG(ScreenTK), cursor="hand1").place(x=280, y=360)
                         ScreenTK.mainloop()
                 if event.type is pygame.QUIT:
                     pygame.quit()
@@ -184,6 +191,7 @@ class GUI:
     def DrawG(self, Screen, font):
         color = (0, 0, 0)
         drawL = True
+
         for Edge in self.Graph.Edges:
             drawL = True
             if (Edge.Origin.x and Edge.Destiny.x and Edge.Origin.y and Edge.Destiny.y) != 0:
@@ -299,6 +307,7 @@ class GUI:
     def MaxWeight(self, root, MW):
         if int(MW.get()) > 0:
             self.Graph.MaxWeight = MW.get()
+            MW.set(0)
             Entries = [[], []]
             size = self.screen_size()
             ScreenTK = tkinter.Toplevel(root)
@@ -330,7 +339,7 @@ class GUI:
                     Ent1E.place(x=90, y=pos)
                     Entries[0].append(Ent1E)
                     Button(ScreenTK, text="Insert weigth",
-                           command=lambda: self.AddWeight(W, Entries), cursor="hand1").place(x=130, y=(pos - 5))
+                           command=lambda: self.AddWeight(Entries), cursor="hand1").place(x=130, y=(pos - 5))
                     ant = pos
 
             ant = 10
@@ -345,27 +354,90 @@ class GUI:
                     Ent2E.place(x=340, y=pos)
                     Entries[1].append(Ent2E)
                     Button(ScreenTK, text="Insert weigth",
-                           command=lambda: self.AddWeight(W, 1, k), cursor="hand1").place(x=380, y=(pos-5))
+                           command=lambda: self.AddWeight(Entries), cursor="hand1").place(x=380, y=(pos-5))
                     ant = pos
 
             Button(ScreenTK, text="OK", command=lambda: ScreenTK.destroy(),
                    cursor="hand1").place(x=230, y=size1[1] - 30)
 
-    def AddWeight(self, W, Entries):
-        P1 = 0
-        P2 = 0
+    def AddWeight(self, Entries):
         ready = False
         for i in range(len(Entries)):
             for j in range(len(Entries[i])):
                 if int(Entries[i][j].get()) != 0:
-                    W.set(Entries[i][j].get())
-                    P1 = i
-                    P2 = j
+                    self.Graph.EWeight[i][j] = int(Entries[i][j].get())
+                    Entries[i][j].delete(0, len(Entries[i][j].get()))
+                    Entries[i][j].insert(0, 0)
                     ready = True
                     break
             if ready:
                 break
 
-        self.Graph.EWeight[P1][P2] = W.get()
-        W.set(0)
-        print(self.Graph.EWeight)
+    def MaxTime(self, root, MT):
+        if int(MT.get()) > 0:
+            self.Graph.MaxTime = MT.get()
+            MT.set(0)
+            Entries = [[], []]
+            size = self.screen_size()
+            ScreenTK = tkinter.Toplevel(root)
+            size1 = [500, 0]
+            if len(self.Graph.StateInit[0]) > len(self.Graph.StateInit[1]):
+                size1[1] = len(self.Graph.StateInit[0]) * 60
+            else:
+                size1[1] = len(self.Graph.StateInit[1]) * 60
+
+            ScreenTK.geometry(
+                f"{size1[0]}x{size1[1]}+{int(size[0]/2) - 250}+{int(size[1]/2) - int(size1[1]/2)}")
+            ScreenTK.title("Entity's Time")
+            ScreenTK.resizable(0, 0)
+            Ins = Label(ScreenTK, text="Write the time correspondent to each entity:").place(
+                x=10, y=10)
+            ant = 10
+            for i in range(len(self.Graph.StateInit)):
+                for ent in self.Graph.StateInit[i]:
+                    self.Graph.TimeC[i].append(0)
+
+            for j in range(len(self.Graph.StateInit[0])):
+                if self.Graph.StateInit[0][j] != '':
+                    W = IntVar()
+                    pos = 30 + ant
+                    Ent1L = Label(ScreenTK, text=f"{self.Graph.StateInit[0][j]}'s Time:").place(
+                        x=10, y=pos)
+                    Ent1E = Entry(ScreenTK, textvariable=W,
+                                  width=5)
+                    Ent1E.place(x=90, y=pos)
+                    Entries[0].append(Ent1E)
+                    Button(ScreenTK, text="Insert Time",
+                           command=lambda: self.AddTime(Entries), cursor="hand1").place(x=130, y=(pos - 5))
+                    ant = pos
+
+            ant = 10
+            for k in range(len(self.Graph.StateInit[1])):
+                if self.Graph.StateInit[1][k] != '':
+                    W = IntVar()
+                    pos = 30 + ant
+                    Ent2L = Label(ScreenTK, text=f"{self.Graph.StateInit[1][k]}'s Time:").place(
+                        x=260, y=pos)
+                    Ent2E = Entry(ScreenTK, textvariable=W,
+                                  width=5)
+                    Ent2E.place(x=340, y=pos)
+                    Entries[1].append(Ent2E)
+                    Button(ScreenTK, text="Insert Time",
+                           command=lambda: self.AddTime(Entries), cursor="hand1").place(x=380, y=(pos-5))
+                    ant = pos
+
+            Button(ScreenTK, text="OK", command=lambda: ScreenTK.destroy(),
+                   cursor="hand1").place(x=230, y=size1[1] - 30)
+
+    def AddTime(self, Entries):
+        ready = False
+        for i in range(len(Entries)):
+            for j in range(len(Entries[i])):
+                if int(Entries[i][j].get()) != 0:
+                    self.Graph.TimeC[i][j] = int(Entries[i][j].get())
+                    Entries[i][j].delete(0, len(Entries[i][j].get()))
+                    Entries[i][j].insert(0, 0)
+                    ready = True
+                    break
+            if ready:
+                break
