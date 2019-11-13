@@ -14,6 +14,7 @@ class CrossRiver:
         self.MaxWeight = 0
         self.MaxTime = 0
         self.MT = False
+        self.NoMGuard = []
         self.MinWaysL = []
         self.Min = []
         self.NoDrive = []
@@ -105,7 +106,7 @@ class CrossRiver:
                                 pt = False
 
                             if (Father.State[1][i] != '' and NDig not in self.NoDrive
-                                    and NDig not in self.NotAlone and pw and pt):
+                                    and pw and pt):
                                 exist = True
                                 dig = True
                                 DigT = ''
@@ -469,7 +470,7 @@ class CrossRiver:
                                 pt = False
 
                             if (Father.State[0][i] != '' and NDig not in self.NoDrive
-                                    and NDig not in self.NotAlone and pw and pt):
+                                    and pw and pt):
                                 exist = True
                                 dig = True
                                 DigT = ''
@@ -811,6 +812,7 @@ class CrossRiver:
         Alone = True
         GuardZ = True
         GuardO = True
+        NoMG = False
         VerConsZ = False
         VerConsO = False
         ConsZ = []
@@ -827,6 +829,7 @@ class CrossRiver:
         al = 0
         i = 0
         j = 0
+        k = 0
 
         for a in range(len(self.NoAloneTog)):
             self.constraintZ.append([])
@@ -889,6 +892,7 @@ class CrossRiver:
             for t in range(len(temp.State)):
                 E1 = 0
                 E2 = 0
+                NoMG = False
                 for u in range(len(temp.State[t])):
                     Etemp = ''
                     Edig = ''
@@ -907,8 +911,17 @@ class CrossRiver:
                                 E2 += 1
                                 if Edig != '':
                                     E2 += int(Edig)
+                            for ent in self.NoMGuard[s]:
+                                if Etemp == ent and Etemp != '':
+                                    NoMG = True
+                                    break
+                                elif not NoMG:
+                                    NoMG = False
                 if E1 != 0 and E2 != 0 and E1 > E2:
-                    MoreT = True
+                    if NoMG:
+                        MoreT = False
+                    else:
+                        MoreT = True
                     break
             if MoreT:
                 break

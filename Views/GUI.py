@@ -52,7 +52,7 @@ class GUI:
                         ScreenTK = Tk()
                         size = self.screen_size()
                         ScreenTK.geometry(
-                            f"620x390+{int(size[0]/2) - 305}+{int(size[1]/2) - 170}")
+                            f"740x410+{int(size[0]/2) - 305}+{int(size[1]/2) - 170}")
                         ScreenTK.title("Configure the automaton")
                         ScreenTK.resizable(0, 0)
                         Entity = StringVar()
@@ -91,16 +91,19 @@ class GUI:
                                      width=20).place(x=350, y=160)
                         Button(ScreenTK, text="Add Constraint",
                                command=lambda: self.NoAloneTog(NoTog, Guard), cursor="hand1").place(x=490, y=155)
-                        C3 = Label(ScreenTK, text="3. Can't stay more: __________________    that:").place(
+                        C3 = Label(ScreenTK, text="3. Can't stay more: __________________    that: _____________________ whitout:").place(
                             x=10, y=190)
                         NoMore = StringVar()
                         That = StringVar()
+                        WTO = StringVar()
                         C3T = Entry(ScreenTK, textvariable=NoMore,
                                     width=20).place(x=130, y=190)
                         C3T1 = Entry(ScreenTK, textvariable=That,
                                      width=20).place(x=300, y=190)
+                        C3T2 = Entry(ScreenTK, textvariable=WTO,
+                                     width=20).place(x=485, y=190)
                         Button(ScreenTK, text="Add Constraint",
-                               command=lambda: self.NoMore(NoMore, That), cursor="hand1").place(x=440, y=185)
+                               command=lambda: self.NoMore(NoMore, That, WTO), cursor="hand1").place(x=625, y=185)
                         C4 = Label(ScreenTK, text="4. Can't stay alone:").place(
                             x=10, y=220)
                         NoAlone = StringVar()
@@ -140,7 +143,7 @@ class GUI:
                         Button(ScreenTK, text="Add Constraint", command=lambda: self.MaxTime(
                             ScreenTK, MT)).place(x=280, y=335)
                         Button(ScreenTK, text="OK",
-                               command=lambda: self.StartG(ScreenTK), cursor="hand1").place(x=280, y=360)
+                               command=lambda: self.StartG(ScreenTK), cursor="hand1").place(x=360, y=370)
                         ScreenTK.mainloop()
                 if event.type is pygame.QUIT:
                     pygame.quit()
@@ -242,7 +245,8 @@ class GUI:
             if CantDrive.get()[i] != ',' and CantDrive.get()[i] != '':
                 cant = cant + CantDrive.get()[i]
             if CantDrive.get()[i] == ',' or i == len(CantDrive.get()) - 1:
-                self.Graph.NoDrive.append(cant)
+                if cant != '':
+                    self.Graph.NoDrive.append(cant)
                 cant = ''
         CantDrive.set('')
 
@@ -255,7 +259,8 @@ class GUI:
             if ent != ',' and ent != '':
                 entity = entity + ent
             if ent == ',' or ent == NoAlone.get()[len(NoAlone.get()) - 1]:
-                NoA.append(entity)
+                if entity != '':
+                    NoA.append(entity)
                 entity = ''
 
         self.Graph.NoAloneTog.append(NoA)
@@ -272,11 +277,26 @@ class GUI:
         NoAlone.set('')
         Guard.set('')
 
-    def NoMore(self, NoM, That):
+    def NoMore(self, NoM, That, WTO):
         NoMore = [NoM.get(), That.get()]
+        Wt = []
+        gu = ''
+        if WTO.get() != '':
+            for guard in WTO.get():
+                if guard != ',' and guard != '':
+                    gu = gu + guard
+                if guard == '' or guard == WTO.get()[len(WTO.get()) - 1]:
+                    if gu != '':
+                        Wt.append(WTO.get())
+                    gu = ''
+        else:
+            Wt.append('')
+
+        self.Graph.NoMGuard.append(Wt)
         self.Graph.NoMore.append(NoMore)
         NoM.set('')
         That.set('')
+        WTO.set('')
 
     def NotAlone(self, NoAlone):
         entity = ''
@@ -284,7 +304,8 @@ class GUI:
             if ent != ',' and ent != '':
                 entity = entity + ent
             if ent == ',' or ent == NoAlone.get()[len(NoAlone.get()) - 1]:
-                self.Graph.NotAlone.append(entity)
+                if entity != '':
+                    self.Graph.NotAlone.append(entity)
                 entity = ''
         NoAlone.set('')
 
@@ -294,7 +315,8 @@ class GUI:
             if ent != ',' and ent != '':
                 entity = entity + ent
             if ent == ',' or ent == Drive.get()[len(Drive.get()) - 1]:
-                self.Graph.DriveAlone.append(entity)
+                if entity != '':
+                    self.Graph.DriveAlone.append(entity)
                 entity = ''
         Drive.set('')
 
