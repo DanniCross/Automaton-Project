@@ -14,6 +14,7 @@ class CrossRiver:
         self.MaxWeight = 0
         self.MaxTime = 0
         self.MT = False
+        self.RaftPos = ''
         self.NoMGuard = []
         self.MinWaysL = []
         self.Min = []
@@ -34,20 +35,12 @@ class CrossRiver:
 
     def Start(self):
         min = inf
-        for entity in self.StateInit[0]:
-            self.StateInit[1].append('')
-            if len(self.StateInitN[0]) > 0:
-                self.StateInitN[1].append(0)
-            if len(self.EWeight[0]) > 0:
-                self.EWeight[1].append(0)
-            if len(self.TimeC[0]) > 0:
-                self.TimeC[1].append(0)
         self.StateAccept[0] = self.StateInit[1]
         self.StateAccept[1] = self.StateInit[0]
         if len(self.StateInitN[0]) > 0:
-            self.Root = Node(self.StateInit, self.StateInitN, 'L', 1)
+            self.Root = Node(self.StateInit, self.StateInitN, self.RaftPos, 1)
         else:
-            self.Root = Node(self.StateInit, [[], []], 'L', 1)
+            self.Root = Node(self.StateInit, [[], []], self.RaftPos, 1)
         if len(self.EWeight[0]) > 0:
             self.Root.Weight = self.EWeight
         if len(self.TimeC[0]) > 0:
@@ -63,6 +56,7 @@ class CrossRiver:
         else:
             for list in self.MinWaysL:
                 self.setPosMin(list)
+        
         for Mlist in self.MinWaysL:
             if len(Mlist) < min:
                 min = len(Mlist)
@@ -114,6 +108,8 @@ class CrossRiver:
                                 temp = Node([[], []], [[], []],
                                             'L', Father.Level + 1)
                                 temp.Father = Father
+                                temp.Min[0] = Father.Min[0] + 1
+                                temp.Min[1] = Father
 
                                 for a in range(len(Father.StateN)):
                                     for b in range(len(Father.StateN[a])):
@@ -176,6 +172,9 @@ class CrossRiver:
                                             else:
                                                 exist = False
                                         if not exist:
+                                            if Father.Min[0] + 1 < node.Min[0]:
+                                                node.Min[0] = Father.Min[0] + 1
+                                                node.Min[1] = Father
                                             Father.Adj.append(node)
                                             exist = True
                                         break
@@ -226,6 +225,8 @@ class CrossRiver:
                                 temp = Node([[], []], [[], []],
                                             'L', Father.Level + 1)
                                 temp.Father = Father
+                                temp.Min[0] = Father.Min[0] + 1
+                                temp.Min[1] = Father
 
                                 for a in range(len(Father.StateN)):
                                     for b in range(len(Father.StateN[a])):
@@ -283,6 +284,9 @@ class CrossRiver:
                                                 else:
                                                     exist = False
                                             if not exist:
+                                                if Father.Min[0] + 1 < node.Min[0]:
+                                                    node.Min[0] = Father.Min[0] + 1
+                                                    node.Min[1] = Father
                                                 Father.Adj.append(node)
                                                 exist = True
                                             break
@@ -308,6 +312,8 @@ class CrossRiver:
                                     temp = Node([[], []], [[], []],
                                                 'L', Father.Level + 1)
                                     temp.Father = Father
+                                    temp.Min[0] = Father.Min[0] + 1
+                                    temp.Min[1] = Father
 
                                     for a in range(len(Father.StateN)):
                                         for b in range(len(Father.StateN[a])):
@@ -427,6 +433,9 @@ class CrossRiver:
                                                 else:
                                                     exist = False
                                             if not exist:
+                                                if Father.Min[0] + 1 < node.Min[0]:
+                                                    node.Min[0] = Father.Min[0] + 1
+                                                    node.Min[1] = Father
                                                 Father.Adj.append(node)
                                                 exist = True
                                             break
@@ -477,6 +486,8 @@ class CrossRiver:
                                 NDig = ''
                                 temp = Node([[], []], [[], []], 'R', Father.Level + 1)
                                 temp.Father = Father
+                                temp.Min[0] = Father.Min[0] + 1
+                                temp.Min[1] = Father
 
                                 for a in range(len(Father.StateN)):
                                     for b in range(len(Father.StateN[a])):
@@ -540,6 +551,9 @@ class CrossRiver:
                                             else:
                                                 exist = False
                                         if not exist:
+                                            if Father.Min[0] + 1 < node.Min[0]:
+                                                node.Min[0] = Father.Min[0] + 1
+                                                node.Min[1] = Father
                                             Father.Adj.append(node)
                                             exist = True
                                         break
@@ -589,6 +603,8 @@ class CrossRiver:
                                 NDig = ''
                                 temp = Node([[], []], [[], []], 'R', Father.Level + 1)
                                 temp.Father = Father
+                                temp.Min[0] = Father.Min[0] + 1
+                                temp.Min[1] = Father
 
                                 for a in range(len(Father.StateN)):
                                     for b in range(len(Father.StateN[a])):
@@ -646,6 +662,9 @@ class CrossRiver:
                                                 else:
                                                     exist = False
                                             if not exist:
+                                                if Father.Min[0] + 1 < node.Min[0]:
+                                                    node.Min[0] = Father.Min[0] + 1
+                                                    node.Min[1] = Father
                                                 Father.Adj.append(node)
                                                 exist = True
                                             break
@@ -670,6 +689,8 @@ class CrossRiver:
                                     may = 0
                                     temp = Node([[], []], [[], []], 'R', Father.Level + 1)
                                     temp.Father = Father
+                                    temp.Min[0] = Father.Min[0] + 1
+                                    temp.Min[1] = Father
 
                                     for a in range(len(Father.StateN)):
                                         for b in range(len(Father.StateN[a])):
@@ -789,6 +810,9 @@ class CrossRiver:
                                                 else:
                                                     exist = False
                                             if not exist:
+                                                if Father.Min[0] + 1 < node.Min[0]:
+                                                    node.Min[0] = Father.Min[0] + 1
+                                                    node.Min[1] = Father
                                                 Father.Adj.append(node)
                                                 exist = True
                                             break
@@ -1053,6 +1077,7 @@ class CrossRiver:
     
     def MinWays(self, Father, min):
         act = []
+        j = 0
 
         if Father.Accept:
             min.append(Father)
@@ -1074,5 +1099,9 @@ class CrossRiver:
                 min.clear()
                 for ant in act:
                     min.append(ant)
+            j += 1
         return
+
+
+
 

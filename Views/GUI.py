@@ -5,6 +5,7 @@ import tkinter
 from tkinter import *
 from Views.Button import Button as B
 from Views.Cursor import Cursor
+from Resources.CrossRiver import CrossRiver
 pygame.init()
 
 
@@ -43,6 +44,12 @@ class GUI:
                   [0] / 2 - 75, self.screen_size()[1] / 2 - 58)
         play = font.render("", True, (0, 0, 0))
 
+        BackButtonU = pygame.image.load("Img/backUp.png")
+        BackButtonU = pygame.transform.scale(BackButtonU, (30, 30))
+        BackButtonD = pygame.image.load("Img/backDown.png")
+        BackButtonD = pygame.transform.scale(BackButtonD, (30, 30))
+        BackB = B(BackButtonU, BackButtonD, 10, 10)
+
         cursor = Cursor()
 
         while True:
@@ -52,20 +59,25 @@ class GUI:
                         ScreenTK = Tk()
                         size = self.screen_size()
                         ScreenTK.geometry(
-                            f"740x410+{int(size[0]/2) - 305}+{int(size[1]/2) - 170}")
+                            f"740x410+{int(size[0]/2) - 360}+{int(size[1]/2) - 210}")
                         ScreenTK.title("Configure the automaton")
                         ScreenTK.resizable(0, 0)
                         Entity = StringVar()
+                        Entity1 = StringVar()
                         EntitiesT = StringVar(
                             value=f"{self.Graph.StateInit[0]}")
                         EntityL = Label(
                             ScreenTK, text="Write the entity's name:").place(x=10, y=10)
                         EntityE = Entry(
-                            ScreenTK, textvariable=Entity, width=37).place(x=10, y=30)
-                        Button(ScreenTK, text="Add Entity", command=lambda:
-                               self.AddState(Entity, EntitiesT), cursor="hand1").place(x=250, y=26)
+                            ScreenTK, textvariable=Entity, width=25).place(x=10, y=30)
+                        Button(ScreenTK, text="Add Left Entity", command=lambda:
+                               self.AddState(Entity, EntitiesT, 0), cursor="hand1").place(x=170, y=26)
                         EntitiesL = Label(
                             ScreenTK, text="Entities: ").place(x=10, y=60)
+                        EntityE1 = Entry(
+                            ScreenTK, textvariable=Entity1, width=25).place(x=300, y=30)
+                        Button(ScreenTK, text="Add Right Entity", command=lambda:
+                               self.AddState(Entity1, EntitiesT, 1), cursor="hand1").place(x=460, y=26)
                         Entities = Label(
                             ScreenTK, textvariable=EntitiesT).place(x=70, y=60)
                         Conditions = Label(
@@ -145,6 +157,10 @@ class GUI:
                         Button(ScreenTK, text="OK",
                                command=lambda: self.StartG(ScreenTK), cursor="hand1").place(x=360, y=370)
                         ScreenTK.mainloop()
+                    if cursor.colliderect(BackB.rect):
+                        self.Graph = CrossRiver()
+                        self.State = [[], []]
+                        self.start = False
                 if event.type is pygame.QUIT:
                     pygame.quit()
                     sys.exit()
@@ -158,8 +174,13 @@ class GUI:
                 Screen.blit(Background, (0, 0))
                 PlayB.update(Screen, cursor, play)
             else:
-                pygame.mouse.set_cursor(*pygame.cursors.arrow)
+                if (pygame.mouse.get_pos()[0] >= BackB.x and pygame.mouse.get_pos()[0] <= BackB.x + 30
+                        and pygame.mouse.get_pos()[1] >= BackB.y and pygame.mouse.get_pos()[1] <= BackB.y + 30):
+                    pygame.mouse.set_cursor(*pygame.cursors.diamond)
+                else:
+                    pygame.mouse.set_cursor(*pygame.cursors.arrow)
                 Screen.fill((255, 255, 255))
+                BackB.update(Screen, cursor, play)
                 self.DrawG(Screen, font)
 
             cursor.update()
@@ -170,12 +191,21 @@ class GUI:
         self.Graph.Start()
         st.destroy()
 
-    def AddState(self, entity, entities):
+    def AddState(self, entity, entities, pos):
         temp = ''
         entN = ''
         dig = True
+        ind = [[False], [False]]
         if entity.get() != '':
-            self.State[0].append(entity.get())
+            self.State[pos].append(entity.get())
+            if pos == 1:
+                self.State[pos - 1].append('')
+                self.Graph.StateInitN[pos - 1].append(0)
+                self.Graph.StateInit[pos - 1].append('')
+            else:
+                self.State[pos + 1].append('')
+                self.Graph.StateInitN[pos + 1].append(0)
+                self.Graph.StateInit[pos + 1].append('')
             for i in range(len(entity.get())):
                 if entity.get()[i].isdigit() and dig:
                     temp = temp + entity.get()[i]
@@ -183,12 +213,29 @@ class GUI:
                     dig = False
                     break
             if temp != '':
-                self.Graph.StateInitN[0].append(int(temp))
+                self.Graph.StateInitN[pos].append(int(temp))
             else:
-                self.Graph.StateInitN[0].append(1)
+                self.Graph.StateInitN[pos].append(1)
 
-            self.Graph.StateInit[0].append(entity.get())
-            entities.set(f"{self.State[0]}")
+            self.Graph.StateInit[pos].append(entity.get())
+
+            for index in range(len(self.State)):
+                for enti in self.State[index]:
+                    if enti != '':
+                        ind[index][0] = True
+                        break
+                    else:
+                        ind[index][0] = False
+
+            if ind[0][0] and ind[1][0]:
+                entities.set(f"{self.State}")
+                self.Graph.RaftPos = 'L'
+            elif ind[0][0] and not ind[1][0]:
+                entities.set(f"{self.State[0]}")
+                self.Graph.RaftPos = 'L'
+            elif ind[1][0] and not ind[0][0]:
+                entities.set(f"{self.State[1]}")
+                self.Graph.RaftPos = 'R'
             entity.set('')
 
     def DrawG(self, Screen, font):
@@ -349,6 +396,10 @@ class GUI:
             for i in range(len(self.Graph.StateInit)):
                 for ent in self.Graph.StateInit[i]:
                     self.Graph.EWeight[i].append(0)
+                    if i == 0:
+                        self.Graph.EWeight[i + 1].append(0)
+                    else:
+                        self.Graph.EWeight[i - 1].append(0)
 
             for j in range(len(self.Graph.StateInit[0])):
                 if self.Graph.StateInit[0][j] != '':
@@ -360,6 +411,7 @@ class GUI:
                                   width=5)
                     Ent1E.place(x=90, y=pos)
                     Entries[0].append(Ent1E)
+                    Entries[1].append(0)
                     Button(ScreenTK, text="Insert weigth",
                            command=lambda: self.AddWeight(Entries), cursor="hand1").place(x=130, y=(pos - 5))
                     ant = pos
@@ -375,6 +427,7 @@ class GUI:
                                   width=5)
                     Ent2E.place(x=340, y=pos)
                     Entries[1].append(Ent2E)
+                    Entries[0].append(0)
                     Button(ScreenTK, text="Insert weigth",
                            command=lambda: self.AddWeight(Entries), cursor="hand1").place(x=380, y=(pos-5))
                     ant = pos
@@ -418,6 +471,10 @@ class GUI:
             for i in range(len(self.Graph.StateInit)):
                 for ent in self.Graph.StateInit[i]:
                     self.Graph.TimeC[i].append(0)
+                    if i == 0:
+                        self.Graph.TimeC[i + 1].append(0)
+                    else:
+                        self.Graph.TimeC[i - 1].append(0)
 
             for j in range(len(self.Graph.StateInit[0])):
                 if self.Graph.StateInit[0][j] != '':
@@ -429,6 +486,7 @@ class GUI:
                                   width=5)
                     Ent1E.place(x=90, y=pos)
                     Entries[0].append(Ent1E)
+                    Entries[1].append(0)
                     Button(ScreenTK, text="Insert Time",
                            command=lambda: self.AddTime(Entries), cursor="hand1").place(x=130, y=(pos - 5))
                     ant = pos
@@ -444,6 +502,7 @@ class GUI:
                                   width=5)
                     Ent2E.place(x=340, y=pos)
                     Entries[1].append(Ent2E)
+                    Entries[0].append(0)
                     Button(ScreenTK, text="Insert Time",
                            command=lambda: self.AddTime(Entries), cursor="hand1").place(x=380, y=(pos-5))
                     ant = pos

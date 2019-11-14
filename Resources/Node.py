@@ -14,6 +14,7 @@ class Node:
         self.x = 0
         self.y = 0
         self.Father = None
+        self.Min = [0, None]
 
     def __eq__(self, node):
         exist = False
