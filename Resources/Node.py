@@ -15,6 +15,8 @@ class Node:
         self.y = 0
         self.Father = None
         self.Min = [0, None]
+        self.Image = None
+        self.ImageP = [0, 0]
 
     def __eq__(self, node):
         exist = False

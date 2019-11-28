@@ -3,6 +3,8 @@ import sys
 import subprocess
 import tkinter
 from tkinter import *
+from math import *
+from random import random
 from Views.Button import Button as B
 from Views.Cursor import Cursor
 from Resources.CrossRiver import CrossRiver
@@ -241,6 +243,8 @@ class GUI:
     def DrawG(self, Screen, font):
         color = (0, 0, 0)
         drawL = True
+        grade = 0
+        arrow = None
 
         for Edge in self.Graph.Edges:
             drawL = True
@@ -251,6 +255,18 @@ class GUI:
                         drawL = False
                         pygame.draw.line(Screen, (0, 255, 0), (Edge.Origin.x,
                                                                Edge.Origin.y), (Edge.Destiny.x, Edge.Destiny.y), 3)
+                        grade = atan2((Edge.Origin.y - Edge.Destiny.y),
+                                      (Edge.Origin.x - Edge.Destiny.x)) * (180 / pi)
+                        if self.Graph.Min[i + 1] == Edge.Origin:
+                            Edge.Origin.Image = pygame.image.load(
+                                "Img/ArrowG.png")
+                            Edge.Origin.Image = pygame.transform.scale(
+                                Edge.Origin.Image, (20, 20))
+                            Edge.Origin.Image = pygame.transform.rotate(
+                                Edge.Origin.Image, -grade)
+
+                            Edge.Origin.ImageP[0] = Edge.Origin.x
+                            Edge.Origin.ImageP[1] = Edge.Origin.y
                         break
                 if drawL:
                     pygame.draw.line(Screen, (0, 0, 0), (Edge.Origin.x,
@@ -285,6 +301,8 @@ class GUI:
                 Screen.blit((State1), (Node.x - 20, Node.y - 15))
                 Screen.blit((State2), (Node.x - 20, Node.y - 5))
                 Screen.blit((Pos), (Node.x - 30, Node.y - 10))
+                # if Node.Image != None:
+                    # Screen.blit(Node.Image, (Node.ImageP[0], Node.ImageP[1]))
 
     def CantDrive(self, CantDrive):
         cant = ''
