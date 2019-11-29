@@ -257,6 +257,8 @@ class GUI:
                                                                Edge.Origin.y), (Edge.Destiny.x, Edge.Destiny.y), 3)
                         grade = atan2((Edge.Origin.y - Edge.Destiny.y),
                                       (Edge.Origin.x - Edge.Destiny.x)) * (180 / pi)
+                        points = []
+                        pasp = True
                         if self.Graph.Min[i + 1] == Edge.Origin:
                             Edge.Origin.Image = pygame.image.load(
                                 "Img/ArrowG.png")
@@ -265,6 +267,7 @@ class GUI:
                             Edge.Origin.Image = pygame.transform.rotate(
                                 Edge.Origin.Image, -grade)
 
+                            Edge.Origin.ImageG = -grade
                             Edge.Origin.ImageP[0] = Edge.Origin.x
                             Edge.Origin.ImageP[1] = Edge.Origin.y
                         break
@@ -301,8 +304,72 @@ class GUI:
                 Screen.blit((State1), (Node.x - 20, Node.y - 15))
                 Screen.blit((State2), (Node.x - 20, Node.y - 5))
                 Screen.blit((Pos), (Node.x - 30, Node.y - 10))
-                # if Node.Image != None:
-                    # Screen.blit(Node.Image, (Node.ImageP[0], Node.ImageP[1]))
+                """if Node.Image != None:
+                    print(Node.ImageG)
+                    if - 180 <= Node.ImageG < -165:
+                        Node.ImageP[0] += 15
+                        Node.ImageP[1] -= ((State1.get_height() + State2.get_height())/2) - 1
+                    elif - 165 <= Node.ImageG < -150:
+                        Node.ImageP[0] += 15
+                        Node.ImageP[1] -= ((State1.get_height() + State2.get_height())/2) + 12
+                    elif - 150 <= Node.ImageG < -135:
+                        Node.ImageP[0] += 5
+                        Node.ImageP[1] -= ((State1.get_height() + State2.get_height())/2) + 15
+                    elif - 135 <= Node.ImageG < -120:
+                        Node.ImageP[1] -= (State1.get_height() + State2.get_height()) + 10
+                    elif - 120 <= Node.ImageG < -105:
+                        Node.ImageP[0] -= 5
+                        Node.ImageP[1] -= (State1.get_height() + State2.get_height() + 10)
+                    elif -105 <= Node.ImageG < -90:
+                        Node.ImageP[0] -= (size - Pos.get_width())/2 - 10
+                        Node.ImageP[1] -= (State1.get_height() + State2.get_height() + 10)
+                    elif - 90 <= Node.ImageG < -75:
+                        Node.ImageP[0] -= 10
+                        Node.ImageP[1] -= (State1.get_height() + State2.get_height() + 10)
+                    elif - 75 <= Node.ImageG < -60:
+                        Node.ImageP[0] -= 5
+                    elif - 60 <= Node.ImageG < -45:
+                        Node.ImageP[0] -= (size - Pos.get_widht())
+                        Node.ImageP[1] -= (State1.get_height() + State2.get_height()) + 10
+                    elif - 45 <= Node.ImageG < -30:
+                        Node.ImageP[0] -= size - 2
+                        Node.ImageP[1] -= (State1.get_height() + State2.get_height()) + 10
+                    elif -30 <= Node.ImageG < -15:
+                        Node.ImageP[0] -= size + 5
+                        Node.ImageP[1] -= (State1.get_height() + State2.get_height() + 2)
+                    elif -15 <= Node.ImageG < 0:
+                        Node.ImageP[0] -= size
+                        Node.ImageP[1] -= (State1.get_height() + (State2.get_height()/2)) - 3
+                    elif 0 <= Node.ImageG < 15:
+                        Node.ImageP[0] -= size + 3
+                        Node.ImageP[1] -= 5
+                    elif 15 <= Node.ImageG < 30:
+                        Node.ImageP[0] -= size - Pos.get_width()
+                    elif 30 <= Node.ImageG < 45:
+                        Node.ImageP[0] -= (size / 2) + 1
+                    elif 45 <= Node.ImageG < 60:
+                        Node.ImageP[0] -= ((size - Pos.get_width())/2) + 5
+                    elif 60 <= Node.ImageG < 75:
+                        Node.ImageP[0] -= (size - Pos.get_width())/2
+                        Node.ImageP[1] += 5
+                    elif 75 <= Node.ImageG < 90:
+                        Node.ImageP[0] -= ((size - Pos.get_width())/2) + 10
+                        Node.ImageP[1] += 5
+                    elif 90 <= Node.ImageG < 105:
+                        Node.ImageP[0] -= ((size - Pos.get_width())/2) - 5
+                    elif 105 <= Node.ImageG < 120:
+                        Node.ImageP[0] -= ((size - Pos.get_width())/2) - 10
+                    elif 120 <= Node.ImageG < 135:
+                        Node.ImageP[0] -= 5
+                    elif 135 <= Node.ImageG < 150:
+                        Node.ImageP[0] += 3
+                    elif 150 <= Node.ImageG < 165:
+                        Node.ImageP[0] += (size - Pos.get_width())/2
+                        Node.ImageP[1] += 1
+                    elif 165 <= Node.ImageG <= 180:
+                        Node.ImageP[0] += (size - Pos.get_width())/2
+                        Node.ImageP[1] -= (State1.get_height()/2) + 2
+                    Screen.blit(Node.Image, (Node.ImageP[0], Node.ImageP[1]))"""
 
     def CantDrive(self, CantDrive):
         cant = ''
